@@ -54,7 +54,8 @@ utils.defaultOptions = function defaultOptions (options) {
     jsonStrict: true,
     detectJSON: false,
     bufferLimit: false,
-    strict: true
+    strict: true,
+    jsonRaw: false
   }, options)
   options.extendTypes = types
   options.onerror = options.onЕrror || options.onerror
@@ -185,7 +186,12 @@ utils.parseBody = function * parseBody (ctx, options, next) { /* eslint complexi
 
   if (options.detectJSON(ctx) || ctx.request.is(options.extendTypes.json)) {
     ctx.app.jsonStrict = typeof options.jsonStrict === 'boolean' ? options.jsonStrict : true
-    ctx.request[fields] = yield ctx.request.json(options.jsonLimit)
+    if (options.jsonRaw && ctx.request.length) {
+      ctx.request.jsonRaw = yield ctx.request.text(options.jsonLimit)
+      ctx.request[fields] = yield ctx.request._parse_json(ctx.request.jsonRaw)
+    } else {
+      ctx.request[fields] = yield ctx.request.json(options.jsonLimit)
+    }
     return yield * next
   }
   if (ctx.request.is(options.extendTypes.form || options.extendTypes.urlencoded)) {
