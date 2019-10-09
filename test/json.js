@@ -52,3 +52,15 @@ test('should not throw on non-objects in non-strict mode', function (done) {
     .expect(200)
     .expect(/foobar/, done)
 })
+test('test json raw', function (done) {
+  var server = koa().use(betterBody({ jsonRaw: true })).use(function * (next) {
+    this.body = this.request.jsonRaw
+    yield * next
+  })
+  request(server.callback())
+    .post('/')
+    .type('application/json')
+    .send('{"fao":"lol"}')
+    .expect(200)
+    .expect('{"fao":"lol"}', done)
+})
